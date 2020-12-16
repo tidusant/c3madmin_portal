@@ -1,6 +1,6 @@
 #admin portal
 
-### how to build 
+### how to build test
 create go.mod file
 update latest dependency:
     go clean --modcache
