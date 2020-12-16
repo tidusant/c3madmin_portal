@@ -7,7 +7,7 @@ update latest dependency:
     go get github.com/tidusant/chadmin-repo@master
     go get github.com/tidusant/c3m-common@master
 compile code:
-    env CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o admin .
+    env CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o c3madmin_portal .
 
 ### run in local:
 cd colis/portals/admin
