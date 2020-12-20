@@ -14,8 +14,9 @@ cd colis/portals/admin
 
 env AUTH_IP=127.0.0.1:8901 SHOP_IP=127.0.0.1:8902 SESSION_URI="mongo_server_uri" SESSION_DB="mongodb_name" CHADMIN_URI="mongo_server_url" CHADMIN_DB="mongodb_name"  go run main.go 
 
-### run in docker:
-docker build -t tidusant/colis-portal-admin . && docker run -p 8081:8080 --env AUTH_IP=192.168.0.105 --name colis-portal-admin tidusant/colis-portal-admin 
+### build & run in docker:
+docker build -t tidusant/c3madmin-portal . 
+ 
 
 ### reference:
 https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
