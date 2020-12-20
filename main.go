@@ -27,31 +27,18 @@ func init() {
 
 }
 
-var authport string
-var authIP string
+var authIP = "127.0.0.1:8901"
+
+var exposeport = "8081"
 
 //main function app run here
 func main() {
-	//expose port to outside of container
-	var exposeport string
-	exposeport = os.Getenv("EXPOSE_PORT")
 
 	//get address of grpc auth from ENV
-	authport = os.Getenv("AUTH_PORT")
 	authIP = os.Getenv("AUTH_IP")
 
-	//other config:
-
-	//default value for ENV
-	if exposeport == "" {
-		exposeport = "8081"
-	}
-	if authport == "" {
-		authport = "9877"
-	}
-
 	//show info to console
-	fmt.Println("auth address: " + authIP + ":" + authport)
+	fmt.Println("auth address: " + authIP)
 	fmt.Println("\n portal admin running with port " + exposeport)
 
 	//start gin
@@ -88,21 +75,25 @@ func postHandler(c *gin.Context) {
 func callgRPC(address string, rpcRequest pb.RPCRequest) models.RequestResult {
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	if err != nil {
-		return c3mcommon.ReturnJsonMessage("-1", "service not run", "", "")
-	}
-
 	defer conn.Close()
-	rpc := pb.NewGRPCServicesClient(conn)
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := rpc.Call(ctx, &rpcRequest)
-	if err != nil {
-		return c3mcommon.ReturnJsonMessage("-1", fmt.Sprintf("could not call service: %v", err.Error()), "", "")
+
+	rs := models.RequestResult{Error: "service not run"}
+	if err == nil && len(address) > 10 {
+		rpc := pb.NewGRPCServicesClient(conn)
+		// Contact the server and print out its response.
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		r, err := rpc.Call(ctx, &rpcRequest)
+		if err != nil {
+			rs.Error = err.Error()
+			return rs
+		}
+
+		err = json.Unmarshal([]byte(r.Data), &rs)
+		if err != nil {
+			rs.Error = r.Data
+		}
 	}
-	var rs models.RequestResult
-	json.Unmarshal([]byte(r.Data), &rs)
 	return rs
 }
 
@@ -139,23 +130,21 @@ func myRoute(c *gin.Context) models.RequestResult {
 	if RPCname == "CreateSex" {
 		//create session string and save it into db
 		data = rpsex.CreateSession()
-		return c3mcommon.ReturnJsonMessage("1", "", "", data)
+		return models.RequestResult{Status: 1, Error: "", Data: data}
 	}
-
-	reply := c3mcommon.ReturnJsonMessage("0", "unknown error", "", "")
 
 	//check session
 
 	if !rpsex.CheckSession(session) {
-		return c3mcommon.ReturnJsonMessage("-2", "session not found", "", "")
+		return models.RequestResult{Error: "Session not found"}
 	}
 	if RPCname == "aut" && requestAction == "l" {
-		return callgRPC(authIP+":"+authport, pb.RPCRequest{AppName: "admin-portal", Action: requestAction, Params: requestParams, Session: session, UserIP: userIP})
+		return callgRPC(authIP, pb.RPCRequest{AppName: "admin-portal", Action: requestAction, Params: requestParams, Session: session, UserIP: userIP})
 	}
 
 	//always check login if RPCname not aut and create session
-	reply = callgRPC(authIP+":"+authport, pb.RPCRequest{AppName: "admin-portal", Action: "aut", Params: requestParams, Session: session, UserIP: userIP})
-	if reply.Status != "1" {
+	reply := callgRPC(authIP, pb.RPCRequest{AppName: "admin-portal", Action: "aut", Params: requestParams, Session: session, UserIP: userIP})
+	if reply.Status != 1 {
 		return reply
 	}
 	log.Debugf("authentication: %+v", reply)
@@ -168,15 +157,15 @@ func myRoute(c *gin.Context) models.RequestResult {
 
 	//test function
 	if requestAction == "t" {
-		return c3mcommon.ReturnJsonMessage("1", "", "", `{"sex":"`+session+`","shop":"`+ShopId+`"}`)
+		return models.RequestResult{Status: 1, Error: "", Data: `{"sex":"` + session + `","shop":"` + ShopId + `"}`}
+
 	}
 
 	//begin gRPC call
 	log.Debugf("RPCname: %s", RPCname)
 	time.Sleep(0 * time.Second)
 	RPCname = strings.ToUpper(RPCname)
-	grpcport := os.Getenv(RPCname + "_PORT")
 	grpcIP := os.Getenv(RPCname + "_IP")
-	return callgRPC(grpcIP+":"+grpcport, pb.RPCRequest{AppName: "admin-portal", Action: requestAction, Params: requestParams, Session: session, UserID: UserId, UserIP: userIP, ShopID: ShopId})
+	return callgRPC(grpcIP, pb.RPCRequest{AppName: "admin-portal", Action: requestAction, Params: requestParams, Session: session, UserID: UserId, UserIP: userIP, ShopID: ShopId})
 
 }

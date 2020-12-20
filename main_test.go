@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
-	c3mcommon "colis/common/common"
-	"colis/common/mycrypto"
+	"github.com/tidusant/c3m-common/c3mcommon"
+	"github.com/tidusant/c3m-common/mycrypto"
 
-	"colis/models"
+	"github.com/tidusant/chadmin-repo/models"
+
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -60,6 +61,7 @@ func decodeResponse(requeststring string, data string) (rs models.RequestResult,
 
 func doCall(testname, requesturl, queryData string, t *testing.T) models.RequestResult {
 	fmt.Println("\n\n==== " + testname + " ====")
+	fmt.Printf("Data: url: %s - data:%s\n", requesturl, queryData)
 	rs, err := decodeResponse(requesturl, queryData)
 	if err != nil {
 		t.Fatalf("Test fail: request error: %s", err.Error())
@@ -86,86 +88,7 @@ func TestMain(m *testing.M) {
 func TestSpecialChar(t *testing.T) {
 	rs := doCall("TestSpecialChar", c3mcommon.GetSpecialChar(), "", t)
 	//check test data
-	if rs.Status == "1" {
+	if rs.Status == 1 {
 		t.Fatalf("Test fail")
-	}
-}
-
-//test function
-func TestCreateSex(t *testing.T) {
-	rs := doCall("TestCreateSex", "CreateSex", "", t)
-	//check test data
-	if rs.Status != "1" {
-		t.Fatalf("Cannot create Sex")
-	}
-
-}
-
-//double test create session
-func TestCreateSex2(t *testing.T) {
-	rs := doCall("TestCreateSex2", "CreateSex", "", t)
-	//check test data
-	if rs.Status != "1" {
-		t.Fatalf("Cannot create Sex after create sex")
-	}
-	testsession = rs.Data
-}
-
-//test login
-func TestLoginWithouSession(t *testing.T) {
-	rs := doCall("TestLoginWithouSession", "aut", "l|admin,123456", t)
-	//check test data
-	if rs.Status == "1" {
-		t.Fatalf("Test fail: user logged in without session")
-	}
-
-}
-func TestLoginWrongUser(t *testing.T) {
-	rs := doCall("TestLoginWrongUser", "aut|"+testsession, "l|admin,123456", t)
-	//check test data
-	if rs.Status == "1" {
-		t.Fatalf("Test fail: user logged in with wrong username pass")
-	}
-}
-func TestLoginSuccessUser(t *testing.T) {
-	rs := doCall("TestLoginSuccessUser", "aut|"+testsession, "l|abc,123", t)
-	//check test data
-	if rs.Status != "1" {
-		t.Fatalf("Test fail: user cannot login with session and userpass")
-	}
-}
-func TestCallRPCWithoutSession(t *testing.T) {
-	rs := doCall("TestCallRPCWithoutSession", "shop", "lsi|abc,123", t)
-	//check test data
-	if rs.Status == "1" {
-		t.Fatalf("Test fail: user can call rpc without session")
-	}
-}
-func TestCallRPCWithoutAuth(t *testing.T) {
-	rs := doCall("TestCallRPCWithoutAuth", "shop|notloggedinsession", "lsi|abc,123", t)
-	//check test data
-	if rs.Status == "1" {
-		t.Fatalf("Test fail: user can call rpc without auth (notloggedinsession)")
-	}
-}
-func TestCallUnkownRPCWithAuth(t *testing.T) {
-	rs := doCall("TestCallUnkownRPCWithAuth", "unknownauth|"+testsession, "lsi|abc,123", t)
-	//check test data
-	if rs.Status == "1" {
-		t.Fatalf("Test fail: user can call unknow rpc ")
-	}
-}
-func TestCallRPCWithUnknownAction(t *testing.T) {
-	rs := doCall("TestCallRPCWithUnknownAction", "shop|"+testsession, "unknowaction|abc,123", t)
-	//check test data
-	if rs.Status == "1" {
-		t.Fatalf("Test fail: user can call unknow action ")
-	}
-}
-func TestCallRPCWithAuth(t *testing.T) {
-	rs := doCall("TestCallRPCWithAuth", "shop|"+testsession, "lsi|", t)
-	//check test data
-	if rs.Status != "1" {
-		t.Fatalf("Test fail: user can not call rpc with action properly")
 	}
 }
