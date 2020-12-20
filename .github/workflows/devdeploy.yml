@@ -21,7 +21,6 @@ jobs:
       - id: check
         name: check is Deploy    
         run: |           
-          echo $NEXT_PUBLIC_API_URL
           #Set branch name
           echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
           # Get last commit message
