@@ -1,0 +1,55 @@
+name: Dev deployment
+env:
+  SERVER: colis-dev
+  DEPLOY_NAME: c3madmin-portal
+  COMMIT_FILTER: TEST
+  SLACK_COMMAND: "curl -X POST -H 'Content-type: application/json' --data"
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  check:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      isdeploy: ${{steps.check.outputs.isdeploy}}
+      branch: ${{steps.check.outputs.branch}}
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - id: check
+        name: check is Deploy    
+        run: |           
+          #Set branch name
+          echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+          # Get last commit message
+          readonly local last_commit_log="${{github.event.head_commit.message}}"
+          echo "last commit log: $last_commit_log"
+
+          readonly local result=$(echo "$last_commit_log" | grep -E "^${COMMIT_FILTER}" )
+          echo "search result: $result"
+
+          if [ "$result" == "" ]; then
+            echo "not a DEPLOY command"
+            echo "::set-output name=isdeploy::false"
+          else
+            echo "the last commit log contains \"$COMMIT_FILTER\", start building"            
+            echo "::set-output name=isdeploy::true"
+            ${SLACK_COMMAND} '{"text":"Start deploy ${DEPLOY_NAME} !"}' ${{secrets.SLACK_WEBHOOK_URL}}
+          fi
+  
+  integration-test:
+    if: ${{ contains(needs.check.outputs.isdeploy, 'true') }}
+    
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out integration code
+      uses: actions/checkout@v2
+      with:
+          repository: tidusant/c3m-integration-test
+    - name: Run test
+      run: |
+        go get -v -t -d ./...
+        env API_URL=http://c3md-api.duyhf.com go run main.go    
+        ${SLACK_COMMAND} '{"text":"test Integration done!"}' ${{secrets.SLACK_WEBHOOK_URL}}
