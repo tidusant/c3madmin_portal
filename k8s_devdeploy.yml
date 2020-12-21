@@ -39,7 +39,7 @@ spec:
             - name: AUTH_IP
               value: "c3m-grpc-auth-service.colis-dev.svc.cluster.local:8901"
             - name: SHOP_IP
-              value: "c3m-grpc-auth-service.colis-dev.svc.cluster.local:8902"
+              value: "c3m-grpc-shop-service.colis-dev.svc.cluster.local:8902"
 ---
 kind: Service
 apiVersion: v1
