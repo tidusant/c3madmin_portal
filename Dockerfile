@@ -5,11 +5,7 @@ LABEL maintainer="Duy Ha <duyhph@gmail.com>"
 WORKDIR /app
 # Copy exec file and config
 COPY main ./
-
-# Build the Go app
-#RUN go build -o main .
-
-# Expose port to the outside world
-#EXPOSE 9191
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
+RUN echo "nameserver 8.8.4.4" > /etc/resolv.conf
 # Run the executable
 CMD ["./main"]
