@@ -15,7 +15,7 @@ jobs:
     # Map a step output to a job output
     outputs:
       isdeploy: ${{steps.check.outputs.isdeploy}}
-      apppath: ${{steps.check.outputs.apppath}}:  
+      apppath: ${{steps.check.outputs.apppath}}  
       branch: ${{steps.check.outputs.branch}}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
