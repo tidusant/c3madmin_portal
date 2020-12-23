@@ -1,23 +1,15 @@
 # Golang CircleCI 2.0 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-go/ for more details
-version: 2
+
+orbs:
+  aws-cli: circleci/aws-cli@1.3.1
+# declare job name
 jobs:
   build:
     docker:
-      # specify the version
-      - image: circleci/golang:1.9
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
-    #### expecting it in the form of
-    ####   /go/src/github.com/circleci/go-tool
-    ####   /go/src/bitbucket.org/circleci/go-tool
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+      - image: circleci/golang:1.15
+      
     steps:
       - checkout
 
@@ -28,11 +20,11 @@ jobs:
       - aws-cli/setup:
           profile-name: example
       - run: echo "Run your code here"
-orbs:
-  aws-cli: circleci/aws-cli@1.3.1
+
 version: 2.1
 workflows:
   aws-cli:
     jobs:
-      - aws-cli-example:
+      #consume job name that declared above with ci context: aws
+      - build:
           context: aws
