@@ -30,18 +30,17 @@ jobs:
           echo "last commit log: $last_commit_log"
           
           #readonly local result=$(echo "$last_commit_log" | grep -E "^${COMMIT_FILTER}" )
-          readonly local commit_text=$(echo "$last_commit_log" | cut -d'\n' -f2 )
-          readonly local result1=$(echo "$last_commit_log" | cut -d'\r\n' -f1 )
-          readonly local result2=$(echo "$last_commit_log" | cut -d'\r' -f1 )
+          readonly local result1=$(echo "$last_commit_log" | cut -d" " -f1 )
+          readonly local result2=$(echo "$last_commit_log" | cut -d" " -f2 )
           echo "search result: $commit_text,$result1, $result2"
 
-          if [ "$result1" == "${COMMIT_FILTER}" ]; then
-            echo "not a DEPLOY command"
-            echo "::set-output name=isdeploy::false"
-          else
+          if [ "$result1" == ${COMMIT_FILTER} ]; then            
             echo "the last commit log contains \"$COMMIT_FILTER\", start building"            
             echo "::set-output name=isdeploy::true"
             ${SLACK_COMMAND} '{"text":"Start deploy ${DEPLOY_NAME} !"}' ${{secrets.SLACK_WEBHOOK_URL}}
+          else            
+            echo "not a DEPLOY command"
+            echo "::set-output name=isdeploy::false"
           fi
   test:
     if: ${{ contains(needs.check.outputs.isdeploy, 'true') }}
