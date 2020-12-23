@@ -65,6 +65,7 @@ jobs:
       run: |
         ls
         cd ${{needs.check.outputs.apppath}}
+        go get -v -t -d ./...
         env SESSION_URI="${{ secrets.DEV_DB_URI }}" SESSION_DB="${{ secrets.DEV_DB_NAME }}" go test -v ./...
         ${SLACK_COMMAND} '{"text":"Testing Done!"}' ${{secrets.SLACK_WEBHOOK_URL}}
 
