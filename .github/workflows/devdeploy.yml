@@ -15,6 +15,7 @@ jobs:
     # Map a step output to a job output
     outputs:
       isdeploy: ${{steps.check.outputs.isdeploy}}
+      apppath: ${{steps.check.outputs.apppath}}:  
       branch: ${{steps.check.outputs.branch}}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -32,11 +33,11 @@ jobs:
           #readonly local result=$(echo "$last_commit_log" | grep -E "^${COMMIT_FILTER}" )
           readonly local result1=$(echo "$last_commit_log" | cut -d" " -f1 )
           readonly local result2=$(echo "$last_commit_log" | cut -d" " -f2 )
-          echo "search result: $commit_text,$result1, $result2"
 
           if [ "$result1" == ${COMMIT_FILTER} ]; then            
             echo "the last commit log contains \"$COMMIT_FILTER\", start building"            
             echo "::set-output name=isdeploy::true"
+            echo "::set-output name=apppath::$result2"
             ${SLACK_COMMAND} '{"text":"Start deploy ${DEPLOY_NAME} !"}' ${{secrets.SLACK_WEBHOOK_URL}}
           else            
             echo "not a DEPLOY command"
@@ -60,19 +61,10 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Get dependencies
-      run: |
-        rm -fr go.mod
-        echo "module github.com/tidusant/${DEPLOY_NAME}" > go.mod
-        go get github.com/tidusant/c3m-common/c3mcommon@master
-        go get github.com/tidusant/c3m-common/log@master
-        go get github.com/tidusant/c3m-common/mycrypto@master
-        go get github.com/tidusant/c3m-common/mystring@master
-        go get github.com/tidusant/chadmin-repo/models@master
-        go get github.com/tidusant/chadmin-repo/session@master
-        go get github.com/tidusant/chadmin-repo/cuahang@master
     - name: Test
       run: |
+        ls
+        cd ${{needs.check.outputs.apppath}}
         env SESSION_URI="${{ secrets.DEV_DB_URI }}" SESSION_DB="${{ secrets.DEV_DB_NAME }}" go test -v ./...
         ${SLACK_COMMAND} '{"text":"Testing Done!"}' ${{secrets.SLACK_WEBHOOK_URL}}
 
