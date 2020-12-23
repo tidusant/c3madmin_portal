@@ -11,7 +11,7 @@ on:
 jobs:
   check:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest    
     # Map a step output to a job output
     outputs:
       isdeploy: ${{steps.check.outputs.isdeploy}}
@@ -46,9 +46,9 @@ jobs:
   test:
     if: ${{ contains(needs.check.outputs.isdeploy, 'true') }}
     runs-on: ubuntu-latest
-#     container:
-#       image: golang:latest
-#       options: --user 1001
+    container:
+      image: golang:latest
+      options: --user 1001
     
     needs: check
     steps:
