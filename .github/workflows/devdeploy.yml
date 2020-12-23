@@ -21,6 +21,8 @@ jobs:
       - id: check
         name: check is Deploy    
         run: |           
+          echo ${GITHUB_EVENT_PATH}
+          echo ${GITHUB_WORKSPACE}
           #Set branch name
           echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
           # Get last commit message
