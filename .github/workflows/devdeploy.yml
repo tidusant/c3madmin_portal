@@ -30,11 +30,12 @@ jobs:
           echo "last commit log: $last_commit_log"
           
           #readonly local result=$(echo "$last_commit_log" | grep -E "^${COMMIT_FILTER}" )
-          readonly local result1=$(echo "$last_commit_log" | cut -d' ' -f1 )
-          readonly local result2=$(echo "$last_commit_log" | cut -d' ' -f1 )
-          echo "search result: $result1, $result2"
+          readonly local commit_text=$(echo "$last_commit_log" | cut -d'\n' -f2 )
+          readonly local result1=$(echo "$last_commit_log" | cut -d'\r\n' -f1 )
+          readonly local result2=$(echo "$last_commit_log" | cut -d'\r' -f1 )
+          echo "search result: $commit_text,$result1, $result2"
 
-          if [ "$result" == "${COMMIT_FILTER}" ]; then
+          if [ "$result1" == "${COMMIT_FILTER}" ]; then
             echo "not a DEPLOY command"
             echo "::set-output name=isdeploy::false"
           else
