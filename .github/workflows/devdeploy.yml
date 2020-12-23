@@ -47,7 +47,7 @@ jobs:
     if: ${{ contains(needs.check.outputs.isdeploy, 'true') }}
     runs-on: ubuntu-latest
     container:
-      image: golang:latest
+      image: ubuntu:latest
       options: --user 1001
     
     needs: check
@@ -81,18 +81,6 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-
-    - name: Get dependencies
-      run: |
-        rm -fr go.mod
-        echo "module github.com/tidusant/c3m-grpc-auth" > go.mod
-        go get github.com/tidusant/c3m-common/c3mcommon@master
-        go get github.com/tidusant/c3m-common/log@master
-        go get github.com/tidusant/c3m-common/mycrypto@master
-        go get github.com/tidusant/c3m-common/mystring@master
-        go get github.com/tidusant/chadmin-repo/models@master
-        go get github.com/tidusant/chadmin-repo/session@master
-        go get github.com/tidusant/chadmin-repo/cuahang@master
     
     - name: Build
       run: env CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
