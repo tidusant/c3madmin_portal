@@ -35,7 +35,7 @@ func decodeResponse(requeststring string, data string) (rs models.RequestResult,
 
 		return
 	}
-	// Create a response recorder so you can inspect the response
+	// Create a response recorder so you can inspect the response test
 	w := httptest.NewRecorder()
 
 	// Perform the request
