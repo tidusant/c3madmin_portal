@@ -28,11 +28,13 @@ jobs:
           # Get last commit message
           readonly local last_commit_log="${{github.event.head_commit.message}}"
           echo "last commit log: $last_commit_log"
+          
+          #readonly local result=$(echo "$last_commit_log" | grep -E "^${COMMIT_FILTER}" )
+          readonly local result1=$(echo "$last_commit_log" | cut -d' ' -f1 )
+          readonly local result2=$(echo "$last_commit_log" | cut -d' ' -f1 )
+          echo "search result: $result1, $result2"
 
-          readonly local result=$(echo "$last_commit_log" | grep -E "^${COMMIT_FILTER}" )
-          echo "search result: $result"
-
-          if [ "$result" == "" ]; then
+          if [ "$result" == "${COMMIT_FILTER}" ]; then
             echo "not a DEPLOY command"
             echo "::set-output name=isdeploy::false"
           else
