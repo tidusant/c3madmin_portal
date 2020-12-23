@@ -63,11 +63,12 @@ func postHandler(c *gin.Context) {
 	} else {
 		log.Debugf("request denied")
 	}
-	log.Debug(strrt)
+
 	if strrt == "" {
 		strrt = c3mcommon.Fake64()
 	} else {
 		strrt = mycrypto.Encode(strrt, 8)
+		log.Debug(mycrypto.DecodeOld(strrt, 8))
 	}
 	c.String(http.StatusOK, strrt)
 }
@@ -81,7 +82,7 @@ func callgRPC(address string, rpcRequest pb.RPCRequest) models.RequestResult {
 	if err == nil && len(address) > 10 {
 		rpc := pb.NewGRPCServicesClient(conn)
 		// Contact the server and print out its response.
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 		r, err := rpc.Call(ctx, &rpcRequest)
 		if err != nil {
@@ -94,6 +95,7 @@ func callgRPC(address string, rpcRequest pb.RPCRequest) models.RequestResult {
 			rs.Error = r.Data
 		}
 	}
+
 	return rs
 }
 
@@ -126,7 +128,7 @@ func myRoute(c *gin.Context) models.RequestResult {
 
 	//get rpc call name from first arg
 	log.Debugf("session: %+v", session)
-
+	log.Debugf("RPCname:%s, action:%s", RPCname, requestAction)
 	if RPCname == "CreateSex" {
 		//create session string and save it into db
 		data = rpsex.CreateSession()
@@ -136,7 +138,7 @@ func myRoute(c *gin.Context) models.RequestResult {
 	//check session
 
 	if !rpsex.CheckSession(session) {
-		return models.RequestResult{Error: "Session not found"}
+		return models.RequestResult{Status: -1, Error: "Session not found"}
 	}
 	if RPCname == "aut" && requestAction == "l" {
 		return callgRPC(authIP, pb.RPCRequest{AppName: "admin-portal", Action: requestAction, Params: requestParams, Session: session, UserIP: userIP})
@@ -157,13 +159,13 @@ func myRoute(c *gin.Context) models.RequestResult {
 
 	//test function
 	if requestAction == "t" {
-		return models.RequestResult{Status: 1, Error: "", Data: `{"sex":"` + session + `","shop":"` + ShopId + `"}`}
+		return models.RequestResult{Status: 1, Error: "", Data: `{"sex":"` + session + `","name":"` + rs["name"] + `","shop":"` + ShopId + `"}`}
 
 	}
 
 	//begin gRPC call
 	log.Debugf("RPCname: %s", RPCname)
-	time.Sleep(0 * time.Second)
+	//time.Sleep(0 * time.Second)
 	RPCname = strings.ToUpper(RPCname)
 	grpcIP := os.Getenv(RPCname + "_IP")
 	return callgRPC(grpcIP, pb.RPCRequest{AppName: "admin-portal", Action: requestAction, Params: requestParams, Session: session, UserID: UserId, UserIP: userIP, ShopID: ShopId})
