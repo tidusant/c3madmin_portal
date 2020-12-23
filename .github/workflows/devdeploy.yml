@@ -46,9 +46,9 @@ jobs:
   test:
     if: ${{ contains(needs.check.outputs.isdeploy, 'true') }}
     runs-on: ubuntu-latest
-    container:
-      #image: ubuntu:latest
-      options: --user 1001
+#     container:
+#       image: golang:latest
+#       options: --user 1001
     
     needs: check
     steps:
